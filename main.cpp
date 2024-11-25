@@ -225,8 +225,8 @@ bool compareByElo(const pair<string, double>& a, const pair<string, double>& b) 
 }
 
 // Fonction pour sauvegarder les classements Elo dans un fichier CSV
-void saveEloRankingsToCSV(const std::map<std::string, double>& eloScores, const std::string& filename) {
-    std::ofstream file(filename);
+void saveEloRankingsToCSV(const map<string, double>& eloScores, const string& filename) {
+    ofstream file(filename);
 
     if (file.is_open()) {
         // Écrire l'en-tête du fichier
@@ -234,13 +234,13 @@ void saveEloRankingsToCSV(const std::map<std::string, double>& eloScores, const 
 
         // Écrire les données des combattants
         for (const auto& pair : eloScores) {
-            file << pair.first << "," << std::fixed << std::setprecision(2) << pair.second << "\n";
+            file << pair.first << "," << fixed << setprecision(2) << pair.second << "\n";
         }
 
         file.close();
-        std::cout << "Classement Elo sauvegardé dans le fichier : " << filename << std::endl;
+        cout << "Classement Elo sauvegardé dans le fichier : " << filename << endl;
     } else {
-        std::cerr << "Impossible d'ouvrir le fichier pour écrire : " << filename << std::endl;
+        cerr << "Impossible d'ouvrir le fichier pour écrire : " << filename << endl;
     }
 }
 
@@ -287,7 +287,7 @@ int main() {
 
     // Mettre à jour les scores Elo et les victoires/défaites après chaque combat
     for (const auto& fight : fights) {
-        bool fighter1Wins = (fight.method.find("win") != string::npos);
+        bool fighter1Wins = (fight.method.find("win") == string::npos); // le 1er fighter est toujours le gagnant
 
         double fighter1Elo = eloScores[fight.fighter_1];
         double fighter2Elo = eloScores[fight.fighter_2];
