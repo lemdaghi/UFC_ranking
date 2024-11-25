@@ -222,6 +222,26 @@ bool compareByElo(const pair<string, double>& a, const pair<string, double>& b) 
     return a.second > b.second;
 }
 
+// Fonction pour sauvegarder les classements Elo dans un fichier CSV
+void saveEloRankingsToCSV(const std::map<std::string, double>& eloScores, const std::string& filename) {
+    std::ofstream file(filename);
+
+    if (file.is_open()) {
+        // Écrire l'en-tête du fichier
+        file << "Fighter,Elo\n";
+
+        // Écrire les données des combattants
+        for (const auto& pair : eloScores) {
+            file << pair.first << "," << pair.second << "\n";
+        }
+
+        file.close();
+        std::cout << "Classement Elo sauvegardé dans le fichier : " << filename << std::endl;
+    } else {
+        std::cerr << "Impossible d'ouvrir le fichier pour écrire : " << filename << std::endl;
+    }
+}
+
 int main() {
     // Charger les combats depuis le fichier CSV
     vector<Fight> fights = loadFightsFromCSV("ufc_fights.csv");
@@ -229,7 +249,7 @@ int main() {
     // Carte pour stocker les scores Elo des combattants
     map<string, double> eloScores;
 
-    // Initialiser chaque combattant avec un Elo de base (par exemple, 1500)
+    // Initialiser chaque combattant avec un Elo de base
     for (const auto& fight : fights) {
         if (eloScores.find(fight.fighter_1) == eloScores.end())
             eloScores[fight.fighter_1] = 1500;
@@ -239,16 +259,18 @@ int main() {
 
     // Mettre à jour les scores Elo après chaque combat
     for (const auto& fight : fights) {
-        // Déterminer le gagnant en fonction de la méthode
         bool fighter1Wins = (fight.method.find("win") != string::npos);
 
-        // Mettre à jour les scores
         double fighter1Elo = eloScores[fight.fighter_1];
         double fighter2Elo = eloScores[fight.fighter_2];
 
+        // Mettre à jour les scores Elo
         eloScores[fight.fighter_1] = calculateElo(fighter1Elo, fighter2Elo, fighter1Wins);
         eloScores[fight.fighter_2] = calculateElo(fighter2Elo, fighter1Elo, !fighter1Wins);
     }
+
+    // Sauvegarder le classement Elo dans un fichier
+    saveEloRankingsToCSV(eloScores, "elo_rankings.csv");
 
     // Menu pour afficher et trier les résultats
     int choice;
@@ -263,7 +285,6 @@ int main() {
 
         switch (choice) {
             case 1: {
-                // Trier par round
                 sort(fights.begin(), fights.end(), compareByRound);
                 cout << "\nCombats triés par round :\n";
                 for (const auto& fight : fights) {
@@ -274,7 +295,6 @@ int main() {
                 break;
             }
             case 2: {
-                // Trier par catégorie de poids
                 sort(fights.begin(), fights.end(), compareByWeightClass);
                 cout << "\nCombats triés par catégorie de poids :\n";
                 for (const auto& fight : fights) {
@@ -285,11 +305,10 @@ int main() {
                 break;
             }
             case 3: {
-                // Trier les combattants par Elo
                 vector<pair<string, double>> sortedElo(eloScores.begin(), eloScores.end());
                 sort(sortedElo.begin(), sortedElo.end(), compareByElo);
 
-                cout << "\nClassement Elo :\n";
+                cout << "\nClassement Elo (du meilleur au moins bon) :\n";
                 for (const auto& pair : sortedElo) {
                     cout << "Fighter: " << pair.first << ", Elo: " << pair.second << endl;
                 }
