@@ -193,56 +193,5 @@ int main() {
 
     // Sauvegarder les victoires et défaites dans un fichier
     saveWinLossRecordsToCSV(winLossRecords, "win_loss_records.csv");
-
-    // // Menu pour afficher et trier les résultats
-    // int choice;
-    // do {
-    //     cout << "\nMenu :\n";
-    //     cout << "1. Afficher les combats triés par round\n";
-    //     cout << "2. Afficher les combats triés par catégorie de poids\n";
-    //     cout << "3. Afficher les combattants triés par score Elo\n";
-    //     cout << "4. Quitter\n";
-    //     cout << "Entrez votre choix : ";
-    //     cin >> choice;
-
-    //     switch (choice) {
-    //         case 1: {
-    //             sort(fights.begin(), fights.end(), compareByRound);
-    //             cout << "\nCombats triés par round :\n";
-    //             for (const auto& fight : fights) {
-    //                 cout << "Round: " << fight.round
-    //                      << ", Fighters: " << fight.fighter_1 << " vs " << fight.fighter_2
-    //                      << ", Weight Class: " << fight.weight_class << endl;
-    //             }
-    //             break;
-    //         }
-    //         case 2: {
-    //             sort(fights.begin(), fights.end(), compareByWeightClass);
-    //             cout << "\nCombats triés par catégorie de poids :\n";
-    //             for (const auto& fight : fights) {
-    //                 cout << "Weight Class: " << fight.weight_class
-    //                      << ", Fighters: " << fight.fighter_1 << " vs " << fight.fighter_2
-    //                      << ", Round: " << fight.round << endl;
-    //             }
-    //             break;
-    //         }
-    //         case 3: {
-    //             vector<pair<string, double>> sortedElo(eloScores.begin(), eloScores.end());
-    //             sort(sortedElo.begin(), sortedElo.end(), compareByElo);
-
-    //             cout << "\nClassement Elo (du meilleur au moins bon) :\n";
-    //             for (const auto& pair : sortedElo) {
-    //                 cout << "Fighter: " << pair.first << ", Elo: " << pair.second << endl;
-    //             }
-    //             break;
-    //         }
-    //         case 4:
-    //             cout << "Au revoir !\n";
-    //             break;
-    //         default:
-    //             cout << "Choix invalide. Réessayez.\n";
-    //     }
-    // } while (choice != 4);
-
     return 0;
 }
