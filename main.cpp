@@ -150,6 +150,8 @@
 #include <map>
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
+#include <locale>
 
 using namespace std;
 
@@ -232,7 +234,7 @@ void saveEloRankingsToCSV(const std::map<std::string, double>& eloScores, const 
 
         // Écrire les données des combattants
         for (const auto& pair : eloScores) {
-            file << pair.first << "," << pair.second << "\n";
+            file << pair.first << "," << std::fixed << std::setprecision(2) << pair.second << "\n";
         }
 
         file.close();
@@ -242,22 +244,48 @@ void saveEloRankingsToCSV(const std::map<std::string, double>& eloScores, const 
     }
 }
 
+void saveWinLossRecordsToCSV(const map<string, pair<int, int>>& winLossRecords, const string& filename) {
+    ofstream file(filename);
+
+    if (file.is_open()) {
+        // Écrire l'en-tête du fichier
+        file << "Fighter,Victories,Defeats\n";
+
+        // Écrire les données des combattants
+        for (const auto& pair : winLossRecords) {
+            file << pair.first << "," << pair.second.first << "," << pair.second.second << "\n";
+        }
+
+        file.close();
+        cout << "Victoires et défaites sauvegardées dans le fichier : " << filename << endl;
+    } else {
+        cerr << "Impossible d'ouvrir le fichier pour écrire : " << filename << endl;
+    }
+}
+
 int main() {
     // Charger les combats depuis le fichier CSV
     vector<Fight> fights = loadFightsFromCSV("ufc_fights.csv");
 
-    // Carte pour stocker les scores Elo des combattants
+    // Map pour stocker les scores Elo des combattants
     map<string, double> eloScores;
 
-    // Initialiser chaque combattant avec un Elo de base
+    // Map pour stocker les victoires et défaites
+    map<string, pair<int, int>> winLossRecords;
+
+    // Initialiser chaque combattant avec un Elo de base et 0 victoires/défaites
     for (const auto& fight : fights) {
-        if (eloScores.find(fight.fighter_1) == eloScores.end())
+        if (eloScores.find(fight.fighter_1) == eloScores.end()) {
             eloScores[fight.fighter_1] = 1500;
-        if (eloScores.find(fight.fighter_2) == eloScores.end())
+            winLossRecords[fight.fighter_1] = {0, 0};
+        }
+        if (eloScores.find(fight.fighter_2) == eloScores.end()) {
             eloScores[fight.fighter_2] = 1500;
+            winLossRecords[fight.fighter_2] = {0, 0};
+        }
     }
 
-    // Mettre à jour les scores Elo après chaque combat
+    // Mettre à jour les scores Elo et les victoires/défaites après chaque combat
     for (const auto& fight : fights) {
         bool fighter1Wins = (fight.method.find("win") != string::npos);
 
@@ -267,60 +295,72 @@ int main() {
         // Mettre à jour les scores Elo
         eloScores[fight.fighter_1] = calculateElo(fighter1Elo, fighter2Elo, fighter1Wins);
         eloScores[fight.fighter_2] = calculateElo(fighter2Elo, fighter1Elo, !fighter1Wins);
+
+        // Mettre à jour les victoires et défaites
+        if (fighter1Wins) {
+            winLossRecords[fight.fighter_1].first++;  // Victoire pour fighter_1
+            winLossRecords[fight.fighter_2].second++; // Défaite pour fighter_2
+        } else {
+            winLossRecords[fight.fighter_2].first++;  // Victoire pour fighter_2
+            winLossRecords[fight.fighter_1].second++; // Défaite pour fighter_1
+        }
     }
 
     // Sauvegarder le classement Elo dans un fichier
     saveEloRankingsToCSV(eloScores, "elo_rankings.csv");
 
-    // Menu pour afficher et trier les résultats
-    int choice;
-    do {
-        cout << "\nMenu :\n";
-        cout << "1. Afficher les combats triés par round\n";
-        cout << "2. Afficher les combats triés par catégorie de poids\n";
-        cout << "3. Afficher les combattants triés par score Elo\n";
-        cout << "4. Quitter\n";
-        cout << "Entrez votre choix : ";
-        cin >> choice;
+    // Sauvegarder les victoires et défaites dans un fichier
+    saveWinLossRecordsToCSV(winLossRecords, "win_loss_records.csv");
 
-        switch (choice) {
-            case 1: {
-                sort(fights.begin(), fights.end(), compareByRound);
-                cout << "\nCombats triés par round :\n";
-                for (const auto& fight : fights) {
-                    cout << "Round: " << fight.round
-                         << ", Fighters: " << fight.fighter_1 << " vs " << fight.fighter_2
-                         << ", Weight Class: " << fight.weight_class << endl;
-                }
-                break;
-            }
-            case 2: {
-                sort(fights.begin(), fights.end(), compareByWeightClass);
-                cout << "\nCombats triés par catégorie de poids :\n";
-                for (const auto& fight : fights) {
-                    cout << "Weight Class: " << fight.weight_class
-                         << ", Fighters: " << fight.fighter_1 << " vs " << fight.fighter_2
-                         << ", Round: " << fight.round << endl;
-                }
-                break;
-            }
-            case 3: {
-                vector<pair<string, double>> sortedElo(eloScores.begin(), eloScores.end());
-                sort(sortedElo.begin(), sortedElo.end(), compareByElo);
+    // // Menu pour afficher et trier les résultats
+    // int choice;
+    // do {
+    //     cout << "\nMenu :\n";
+    //     cout << "1. Afficher les combats triés par round\n";
+    //     cout << "2. Afficher les combats triés par catégorie de poids\n";
+    //     cout << "3. Afficher les combattants triés par score Elo\n";
+    //     cout << "4. Quitter\n";
+    //     cout << "Entrez votre choix : ";
+    //     cin >> choice;
 
-                cout << "\nClassement Elo (du meilleur au moins bon) :\n";
-                for (const auto& pair : sortedElo) {
-                    cout << "Fighter: " << pair.first << ", Elo: " << pair.second << endl;
-                }
-                break;
-            }
-            case 4:
-                cout << "Au revoir !\n";
-                break;
-            default:
-                cout << "Choix invalide. Réessayez.\n";
-        }
-    } while (choice != 4);
+    //     switch (choice) {
+    //         case 1: {
+    //             sort(fights.begin(), fights.end(), compareByRound);
+    //             cout << "\nCombats triés par round :\n";
+    //             for (const auto& fight : fights) {
+    //                 cout << "Round: " << fight.round
+    //                      << ", Fighters: " << fight.fighter_1 << " vs " << fight.fighter_2
+    //                      << ", Weight Class: " << fight.weight_class << endl;
+    //             }
+    //             break;
+    //         }
+    //         case 2: {
+    //             sort(fights.begin(), fights.end(), compareByWeightClass);
+    //             cout << "\nCombats triés par catégorie de poids :\n";
+    //             for (const auto& fight : fights) {
+    //                 cout << "Weight Class: " << fight.weight_class
+    //                      << ", Fighters: " << fight.fighter_1 << " vs " << fight.fighter_2
+    //                      << ", Round: " << fight.round << endl;
+    //             }
+    //             break;
+    //         }
+    //         case 3: {
+    //             vector<pair<string, double>> sortedElo(eloScores.begin(), eloScores.end());
+    //             sort(sortedElo.begin(), sortedElo.end(), compareByElo);
+
+    //             cout << "\nClassement Elo (du meilleur au moins bon) :\n";
+    //             for (const auto& pair : sortedElo) {
+    //                 cout << "Fighter: " << pair.first << ", Elo: " << pair.second << endl;
+    //             }
+    //             break;
+    //         }
+    //         case 4:
+    //             cout << "Au revoir !\n";
+    //             break;
+    //         default:
+    //             cout << "Choix invalide. Réessayez.\n";
+    //     }
+    // } while (choice != 4);
 
     return 0;
 }
