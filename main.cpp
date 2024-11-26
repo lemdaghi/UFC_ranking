@@ -11,7 +11,7 @@
 
 using namespace std;
 
-// Structure Fight pour représenter un combat
+// Structure of a Fight
 struct Fight {
     string link;
     string fighter_1;
@@ -22,23 +22,23 @@ struct Fight {
     string weight_class;
 };
 
-// Fonction pour charger les données depuis le fichier CSV
+// Fonction to load data from CSV file
 vector<Fight> loadFightsFromCSV(const string& filename) {
     vector<Fight> fights;
     ifstream file(filename);
     string line;
 
     if (file.is_open()) {
-        // Ignorer la première ligne (en-têtes)
+        // Ignore the 1st line (header)
         getline(file, line);
 
-        // Lire ligne par ligne
+        // Read line by line
         while (getline(file, line)) {
             stringstream ss(line);
             Fight fight;
             string value;
 
-            // Récupérer les valeurs séparées par des virgules
+            // Get values separated by commas
             getline(ss, fight.link, ',');
             getline(ss, fight.fighter_1, ',');
             getline(ss, fight.fighter_2, ',');
@@ -47,7 +47,7 @@ vector<Fight> loadFightsFromCSV(const string& filename) {
             getline(ss, fight.time, ',');
             getline(ss, fight.weight_class, ',');
 
-            // Ajouter à la liste des combats
+            // Add fights to the list
             fights.push_back(fight);
         }
         file.close();
@@ -58,131 +58,127 @@ vector<Fight> loadFightsFromCSV(const string& filename) {
     return fights;
 }
 
-// Fonction pour calculer le nouvel Elo
+// Fonction to calculate the new Elo
 double calculateElo(double currentElo, double opponentElo, bool isWinner, int kFactor = 32) {
     double expectedScore = 1.0 / (1.0 + pow(10, (opponentElo - currentElo) / 400.0));
     double actualScore = isWinner ? 1.0 : 0.0;
     return currentElo + kFactor * (actualScore - expectedScore);
 }
 
-// Déterminer le facteur K en fonction de la méthode
+// Define the K factor according to the winning method
 int determineKFactor(const string& method) {
     if (method.find("KO") != string::npos || method.find("TKO") != string::npos)
         return 40; // KO/TKO
     else if (method.find("SUB") != string::npos)
-        return 35; // Soumission
+        return 35; // Submission
     else
-        return 25; // Décision ou autres
+        return 25; // Decision or other
 }
 
-// Comparateur pour trier les combattants par Elo (ordre décroissant)
-bool compareByElo(const pair<string, double>& a, const pair<string, double>& b) {
-    return a.second > b.second;
-}
-
-// Fonction pour sauvegarder les classements Elo dans un fichier CSV
-void saveEloRankingsToCSV(const map<string, double>& eloScores, const string& filename) {
-    ofstream file(filename);
-
-    if (file.is_open()) {
-        // Écrire l'en-tête du fichier
-        file << "Fighter,Elo\n";
-
-        // Écrire les données des combattants
-        for (const auto& pair : eloScores) {
-            file << pair.first << "," << fixed << setprecision(2) << pair.second << "\n";
-        }
-
-        file.close();
-        cout << "Classement Elo sauvegardé dans le fichier : " << filename << endl;
-    } else {
-        cerr << "Impossible d'ouvrir le fichier pour écrire : " << filename << endl;
-    }
-}
-
-// Fonction de tri par insertion pour gérer une liste triée
+// Fonction to sort by insertion
 void insertSorted(vector<pair<string, double>>& sorted, const pair<string, double>& newEntry) {
     auto it = sorted.begin();
     while (it != sorted.end() && it->second > newEntry.second) {
         ++it;
     }
 
-    // Vérifier si le combattant existe déjà (éviter les doublons)
+    // Verify if the fighter already exists 
     for (const auto& entry : sorted) {
         if (entry.first == newEntry.first) {
-            return; // Combattant déjà présent
+            return; // fighter already exists
         }
     }
 
-    // Insérer l'entrée à la position correcte
+    // Insert input in correct position
     sorted.insert(it, newEntry);
 }
 
+// Fonction for saving the Elo's ranking in a CSV file
+void saveEloRankingsToCSV(const map<string, double>& eloScores, const string& filename) {
+    ofstream file(filename);
+
+    if (file.is_open()) {
+        // Write the header
+        file << "Fighter,Elo\n";
+
+        // Write data in the file
+        for (const auto& pair : eloScores) {
+            file << pair.first << "," << fixed << setprecision(2) << pair.second << "\n";
+        }
+
+        file.close();
+        cout << "Elo Ranking saved in : " << filename << endl;
+    } else {
+        cerr << "Impossible to open the file : " << filename << endl;
+    }
+}
+
+// Fontion to sort data then saving it in a CSV file
 void saveEloRankingsWithInsertionSortToCSV(const map<string, double>& eloScores, const string& filename) {
     ofstream file(filename);
 
     if (file.is_open()) {
-        // Écrire l'en-tête du fichier
+        // Write the header
         file << "Fighter,Elo\n";
 
-        // Liste triée pour stocker les scores (en mémoire)
         vector<pair<string, double>> sorted;
 
         for (const auto& pair : eloScores) {
-            // Insérer chaque combattant dans la liste triée
+            // Insert every fighter in the sorted list
             insertSorted(sorted, pair);
         }
 
-        // Écrire la liste triée dans le fichier
+        // Copy the sorted list in the CSV file
         for (const auto& sortedPair : sorted) {
             file << sortedPair.first << "," << fixed << setprecision(2) << sortedPair.second << "\n";
         }
 
         file.close();
-        cout << "Classement Elo sauvegardé dans le fichier (tri par insertion appliqué) : " << filename << endl;
+        cout << "Elo Ranking sorted is saved in : " << filename << endl;
     } else {
-        cerr << "Impossible d'ouvrir le fichier pour écrire : " << filename << endl;
+        cerr << "Impossible to open the file : " << filename << endl;
     }
 }
 
+// Fonction to save the win/loss record for every fighter in a CSV file
 void saveWinLossRecordsToCSV(const map<string, pair<int, int>>& winLossRecords, const string& filename) {
     ofstream file(filename);
 
     if (file.is_open()) {
-        // Écrire l'en-tête du fichier
+        // Write the header
         file << "Fighter,Victories,Defeats\n";
 
-        // Écrire les données des combattants
+        // Write data in the CSV file
         for (const auto& pair : winLossRecords) {
             file << pair.first << "," << pair.second.first << "," << pair.second.second << "\n";
         }
 
         file.close();
-        cout << "Victoires et défaites sauvegardées dans le fichier : " << filename << endl;
+        cout << "Victories and defeats saved in : " << filename << endl;
     } else {
-        cerr << "Impossible d'ouvrir le fichier pour écrire : " << filename << endl;
+        cerr << "Impossible to open the file : " << filename << endl;
     }
 }
 
 int main() {
-    // Charger les combats depuis le fichier CSV
+    // Load data from the recovered CSV file
     vector<Fight> fights = loadFightsFromCSV("ufc_fights.csv");
 
-    // Map pour stocker les scores Elo des combattants
+    // Map to save the Elo score of fighters
     map<string, double> eloScores;
 
-    // Map pour stocker les victoires et défaites
+    // Map to save the win/loss records
     map<string, pair<int, int>> winLossRecords;
 
     // Choisir le mode de calcul
     int choice;
-    cout << "Choisissez le mode de calcul Elo :\n";
-    cout << "1. Sans tenir compte de la méthode\n";
-    cout << "2. En tenant compte de la méthode\n";
-    cout << "Entrez votre choix : ";
+    cout << "Choose Elo calculation method :\n";
+    cout << "1. Regardless of the winning method\n";
+    cout << "2. Taking into account the winning method\n";
+    cout << "Enter your choice : ";
     cin >> choice;
 
-    // Initialiser chaque combattant avec un Elo de base et 0 victoires/défaites
+    // Initialize every fighter with a basic Elo and 0 wins/losses
     for (const auto& fight : fights) {
         if (eloScores.find(fight.fighter_1) == eloScores.end()) {
             eloScores[fight.fighter_1] = 1500;
@@ -194,39 +190,39 @@ int main() {
         }
     }
 
-    // Mettre à jour les scores Elo et les victoires/défaites après chaque combat
+    // Update Elo scores and wins/losses after each fight
     for (const auto& fight : fights) {
-        bool fighter1Wins = (fight.method.find("win") == string::npos); // le 1er fighter est toujours le gagnant
+        bool fighter1Wins = (fight.method.find("win") == string::npos); // the 1st fighter is always the winner according to the UFC web site
 
         double fighter1Elo = eloScores[fight.fighter_1];
         double fighter2Elo = eloScores[fight.fighter_2];
 
-        int kFactor = 32; // Par défaut pour choix 1
+        int kFactor = 32; // by default for choice 1
         if (choice == 2) {
-            kFactor = determineKFactor(fight.method); // Ajuster le K selon la méthode
+            kFactor = determineKFactor(fight.method); // Adjust K factor according to the method
         }
-        // Mettre à jour les scores Elo
+        // Update Elo scores
         eloScores[fight.fighter_1] = calculateElo(fighter1Elo, fighter2Elo, fighter1Wins, kFactor);
         eloScores[fight.fighter_2] = calculateElo(fighter2Elo, fighter1Elo, !fighter1Wins, kFactor);
 
-        // Mettre à jour les victoires et défaites
+        // Update wins/losses
         if (fighter1Wins) {
-            winLossRecords[fight.fighter_1].first++;  // Victoire pour fighter_1
-            winLossRecords[fight.fighter_2].second++; // Défaite pour fighter_2
+            winLossRecords[fight.fighter_1].first++;  // win for fighter_1
+            winLossRecords[fight.fighter_2].second++; // loss for fighter_2
         } else {
-            winLossRecords[fight.fighter_2].first++;  // Victoire pour fighter_2
-            winLossRecords[fight.fighter_1].second++; // Défaite pour fighter_1
+            winLossRecords[fight.fighter_2].first++;  // win for fighter_2
+            winLossRecords[fight.fighter_1].second++; // loss for fighter_1
         }
     }
 
-    // Sauvegarder les résultats dans un fichier CSV
+    // Sauve results in a CSV file
     if (choice == 1) {
         saveEloRankingsWithInsertionSortToCSV(eloScores, "elo_rankings_without_method.csv");
     } else if (choice == 2) {
         saveEloRankingsWithInsertionSortToCSV(eloScores, "elo_rankings_with_method.csv");
     }
 
-    // Sauvegarder les victoires et défaites dans un fichier
+    // Save win/loss record in a CSV file
     saveWinLossRecordsToCSV(winLossRecords, "win_loss_records.csv");
     return 0;
 }
