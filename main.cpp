@@ -75,16 +75,6 @@ int determineKFactor(const string& method) {
         return 25; // Décision ou autres
 }
 
-// Comparateur pour trier les combats par round (en ordre croissant)
-bool compareByRound(const Fight& a, const Fight& b) {
-    return stoi(a.round) < stoi(b.round);
-}
-
-// Comparateur pour trier par catégorie de poids (ordre alphabétique)
-bool compareByWeightClass(const Fight& a, const Fight& b) {
-    return a.weight_class < b.weight_class;
-}
-
 // Comparateur pour trier les combattants par Elo (ordre décroissant)
 bool compareByElo(const pair<string, double>& a, const pair<string, double>& b) {
     return a.second > b.second;
@@ -105,6 +95,39 @@ void saveEloRankingsToCSV(const map<string, double>& eloScores, const string& fi
 
         file.close();
         cout << "Classement Elo sauvegardé dans le fichier : " << filename << endl;
+    } else {
+        cerr << "Impossible d'ouvrir le fichier pour écrire : " << filename << endl;
+    }
+}
+
+void saveEloRankingsWithInsertionSortToCSV(const map<string, double>& eloScores, const string& filename) {
+    ofstream file(filename);
+
+    if (file.is_open()) {
+        // Écrire l'en-tête du fichier
+        file << "Fighter,Elo\n";
+
+        // Liste triée (vide au départ) pour contenir les lignes triées
+        vector<pair<string, double>> sorted;
+
+        for (const auto& pair : eloScores) {
+            // Trouver la position où insérer l'élément dans la liste triée
+            auto it = sorted.begin();
+            while (it != sorted.end() && it->second > pair.second) {
+                ++it;
+            }
+
+            // Insérer à la position correcte
+            sorted.insert(it, pair);
+
+            // Écrire toute la liste triée dans le fichier
+            for (const auto& sortedPair : sorted) {
+                file << sortedPair.first << "," << fixed << setprecision(2) << sortedPair.second << "\n";
+            }
+        }
+
+        file.close();
+        cout << "Classement Elo sauvegardé dans le fichier (avec tri par insertion) : " << filename << endl;
     } else {
         cerr << "Impossible d'ouvrir le fichier pour écrire : " << filename << endl;
     }
@@ -186,9 +209,9 @@ int main() {
 
     // Sauvegarder les résultats dans un fichier CSV
     if (choice == 1) {
-        saveEloRankingsToCSV(eloScores, "elo_rankings_without_method.csv");
+        saveEloRankingsWithInsertionSortToCSV(eloScores, "elo_rankings_without_method.csv");
     } else if (choice == 2) {
-        saveEloRankingsToCSV(eloScores, "elo_rankings_with_method.csv");
+        saveEloRankingsWithInsertionSortToCSV(eloScores, "elo_rankings_with_method.csv");
     }
 
     // Sauvegarder les victoires et défaites dans un fichier
