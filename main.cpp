@@ -100,6 +100,24 @@ void saveEloRankingsToCSV(const map<string, double>& eloScores, const string& fi
     }
 }
 
+// Fonction de tri par insertion pour gérer une liste triée
+void insertSorted(vector<pair<string, double>>& sorted, const pair<string, double>& newEntry) {
+    auto it = sorted.begin();
+    while (it != sorted.end() && it->second > newEntry.second) {
+        ++it;
+    }
+
+    // Vérifier si le combattant existe déjà (éviter les doublons)
+    for (const auto& entry : sorted) {
+        if (entry.first == newEntry.first) {
+            return; // Combattant déjà présent
+        }
+    }
+
+    // Insérer l'entrée à la position correcte
+    sorted.insert(it, newEntry);
+}
+
 void saveEloRankingsWithInsertionSortToCSV(const map<string, double>& eloScores, const string& filename) {
     ofstream file(filename);
 
@@ -107,27 +125,21 @@ void saveEloRankingsWithInsertionSortToCSV(const map<string, double>& eloScores,
         // Écrire l'en-tête du fichier
         file << "Fighter,Elo\n";
 
-        // Liste triée (vide au départ) pour contenir les lignes triées
+        // Liste triée pour stocker les scores (en mémoire)
         vector<pair<string, double>> sorted;
 
         for (const auto& pair : eloScores) {
-            // Trouver la position où insérer l'élément dans la liste triée
-            auto it = sorted.begin();
-            while (it != sorted.end() && it->second > pair.second) {
-                ++it;
-            }
+            // Insérer chaque combattant dans la liste triée
+            insertSorted(sorted, pair);
+        }
 
-            // Insérer à la position correcte
-            sorted.insert(it, pair);
-
-            // Écrire toute la liste triée dans le fichier
-            for (const auto& sortedPair : sorted) {
-                file << sortedPair.first << "," << fixed << setprecision(2) << sortedPair.second << "\n";
-            }
+        // Écrire la liste triée dans le fichier
+        for (const auto& sortedPair : sorted) {
+            file << sortedPair.first << "," << fixed << setprecision(2) << sortedPair.second << "\n";
         }
 
         file.close();
-        cout << "Classement Elo sauvegardé dans le fichier (avec tri par insertion) : " << filename << endl;
+        cout << "Classement Elo sauvegardé dans le fichier (tri par insertion appliqué) : " << filename << endl;
     } else {
         cerr << "Impossible d'ouvrir le fichier pour écrire : " << filename << endl;
     }
