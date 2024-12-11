@@ -1,4 +1,4 @@
-### UFC Elo Ranking System
+# UFC Elo Ranking System
 This project implements an Elo ranking system specifically tailored for UFC fighters. It calculates fighter ratings based on fight outcomes, with options to include factors such as the method of victory. The application scrapes data from the UFC web site, reads fight data from a CSV file, updates fighter Elo ratings, tracks win-loss records, and saves the results in sorted CSV files.
 
 ## Features
@@ -34,7 +34,7 @@ The project includes a Python script that scrapes fight data from the UFC Stats 
 - Round and time of the fight
 - Weight category
 
-# Scraping Workflow
+### Scraping Workflow
 The script identifies all fight events from the UFC event list.
 For each event, it extracts fight details and saves them into a CSV file.
 This file is then used as input for the Elo ranking calculations in the C++ program.
@@ -84,15 +84,15 @@ This adjustment reflects the dominance of certain victory methods, where decisiv
 First you have to scrap data from the ufc web site. To do that you can simply execute the python file: 
 python3 scraping_ufc_fights.py
 
-# Compilation
+### Compilation
 To compile the project, use a C++ compiler:
 g++ -o ufc_elo_ranking main.cpp
 
-# Execution
+### Execution
 Run the executable:
 ./ufc_elo_ranking
 
-# User Interaction
+### User Interaction
 The application provides options to:
 - Include or exclude weight categories in Elo calculations.
 - Include or exclude the method of victory in Elo calculations.
