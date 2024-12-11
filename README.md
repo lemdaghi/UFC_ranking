@@ -82,7 +82,7 @@ This adjustment reflects the dominance of certain victory methods, where decisiv
 
 ## Usage
 First you have to scrap data from the ufc web site. To do that you can simply execute the python file: 
-python3 scraping.py
+python3 scraping_ufc_fights.py
 
 # Compilation
 To compile the project, use a C++ compiler:
