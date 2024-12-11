@@ -14,7 +14,7 @@ This project implements an Elo ranking system specifically tailored for UFC figh
 ## Requirements
 - A C++ compiler (e.g., GCC, Clang, or MSVC)
 - Standard C++17 or later
-- Python3 and the libraries : requests, bs4 and panda
+- Python3 and the libraries : requests, BeautifulSoup and panda
 
 ## Input File Format
 The input CSV file (e.g., ufc_fights.csv) should have the following columns:
